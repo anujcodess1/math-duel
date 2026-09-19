@@ -1,0 +1,28 @@
+{
+  "name": "@repo/db",
+  "main": "index.ts",
+  "module": "index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/pg": "^8.23.1",
+    "prisma": "^7.10.0"
+  },
+  
+  "scripts":{
+    "generate": "bunx prisma generate"
+  },
+  "peerDependencies": {
+    "typescript": "^7"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "7",
+    "dotenv": "^18.0.1",
+    "pg": "^8.23.0"
+  }
+}
