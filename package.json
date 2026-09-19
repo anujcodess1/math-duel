@@ -1,0 +1,34 @@
+{
+  "name": "app",
+  "private": true,
+  "scripts": {
+    "postinstall": "bun run db:generate",
+    "db:generate": "bun --filter @repo/db generate",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "dev:frontend": "bun --filter frontend dev",
+    "dev:http": "bun --filter http-backend dev",
+    "dev:ws": "bun --filter ws-backend dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types"
+  },
+  "devDependencies": {
+    "prettier": "3.9.6",
+    "turbo": "^2.11.2",
+    "typescript": "7.0.2"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "bun",
+      "version": "1.4.0"
+    }
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}

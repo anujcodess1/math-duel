@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum QuestionSign {
+  PLUS
+  MINUS
+  MULTIPLY
+  DIVIDE
+}
+
+enum GameStatus {
+  SEARCHING_FOR_PLAYER
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum GameMemberResult {
+  PLAYING
+  WON
+  LOST
+  DRAW
+  RESIGNED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rating                 UserRating?
+  gameMemberships        GameMember[]
+  sentFriendRequests     Friendship[]     @relation("FriendRequestSender")
+  receivedFriendRequests Friendship[]     @relation("FriendRequestReceiver")
+  answers                QuestionAnswer[]
+
+  @@index([email])
+  @@index([username])
+}
+
+model UserRating {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating      Int      @default(0)
+  gamesPlayed Int      @default(0)
+  wins        Int      @default(0)
+  losses      Int      @default(0)
+  draws       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Friendship {
+  id         String              @id @default(uuid())
+  status     FriendRequestStatus @default(PENDING)
+  senderId   String
+  sender     User                @relation("FriendRequestSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User                @relation("FriendRequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@unique([senderId, receiverId])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([status])
+}
+
+model Game {
+  id        String           @id @default(uuid())
+  status    GameStatus       @default(SEARCHING_FOR_PLAYER)
+  timeLimit Int
+  startedAt DateTime?
+  endedAt   DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  members   GameMember[]
+  questions Question[]
+  answers   QuestionAnswer[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model GameMember {
+  id       String           @id @default(uuid())
+  gameId   String
+  game     Game             @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score    Int              @default(0)
+  result   GameMemberResult @default(PLAYING)
+  joinedAt DateTime         @default(now())
+
+  @@unique([gameId, userId])
+  @@index([gameId])
+  @@index([userId])
+}
+
+model Question {
+  id           String           @id @default(uuid())
+  gameId       String
+  game         Game             @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  operand1     Int
+  operand2     Int
+  sign         QuestionSign
+  systemAnswer Int
+  order        Int              @default(1)
+  createdAt    DateTime         @default(now())
+
+  answers      QuestionAnswer[]
+
+  @@index([gameId])
+}
+
+model QuestionAnswer {
+  id          String   @id @default(uuid())
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  gameId      String
+  game        Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answer      Int
+  isCorrect   Boolean
+  timeTakenMs Int?
+  answeredAt  DateTime @default(now())
+
+  @@unique([questionId, userId])
+  @@index([gameId])
+  @@index([questionId])
+  @@index([userId])
+}
